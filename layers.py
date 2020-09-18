@@ -54,7 +54,7 @@ class PoolLayer:
         self._stride_size = stride_size
         self._mode = mode
 
-    def forward(self, inputs):
+    def foward(self, inputs):
         channel_size = inputs.shape[0]
         new_width = int((inputs.shape[1] - self._filter_size) / self._stride_size) + 1
         new_height = int((inputs.shape[2] - self._filter_size) / self._stride_size) + 1

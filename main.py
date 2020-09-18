@@ -1,4 +1,4 @@
-from layers import ConvLayer, DenseLayer
+from layers import ConvLayer, PoolLayer, DenseLayer
 from PIL import Image
 import numpy as np
 
@@ -22,6 +22,16 @@ if __name__ == "__main__":
 
     # show the image
     # image.show()
+
+    # POOLING LAYER
+    print("\n\nPOOLING LAYER:\n")
+    layer3 = PoolLayer(3, 1, "Max")
+    dataPooling = np.random.randint(0, 256, size=(3, 5, 5))
+    print("\nCoba feature map random:\n")
+    print(dataPooling)
+    poolingOutputTest = layer3.foward(dataPooling)
+    print("\nHasil Pooling:\n")
+    print(poolingOutputTest)
 
     # DENSE LAYER
     print("\n\nDense Layer\n\n")
