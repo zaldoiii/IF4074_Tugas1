@@ -25,7 +25,7 @@ if __name__ == "__main__":
 
     # POOLING LAYER
     print("\n\nPOOLING LAYER:\n")
-    layer3 = PoolLayer(3, 1, "Max")
+    layer3 = PoolLayer(3, 1, "Max") # Bisa diganti antara 'max' atau 'average'
     dataPooling = np.random.randint(0, 256, size=(3, 5, 5))
     print("\nCoba feature map random:\n")
     print(dataPooling)
