@@ -1,4 +1,4 @@
-from layers import ConvLayer
+from layers import ConvLayer, DenseLayer
 from PIL import Image
 import numpy as np
 
@@ -22,3 +22,15 @@ if __name__ == "__main__":
 
     # show the image
     # image.show()
+
+    # DENSE LAYER
+    print("\n\nDense Layer\n\n")
+    n_units = 2
+    data_size = 5
+    flat_data = np.random.uniform(low=-10, high=10, size=data_size)
+    weight = np.random.random((n_units, data_size + 1))
+    print("Data input:\n", flat_data)
+    print("Init Weight:\n", weight)
+    layer2 = DenseLayer(n_units=n_units, activation='sigmoid')
+    out1 = layer2.foward(flat_data, weight)
+    print("Data output:\n", out1)
