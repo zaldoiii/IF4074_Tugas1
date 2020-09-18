@@ -49,12 +49,31 @@ class ConvLayer:
 
 
 class PoolLayer:
-    def __init__(self, filter_size, stride_size, mode):
-        pass
+    def __init__(self,filter_size,stride_size,mode):
+        self._filter_size = filter_size
+        self._stride_size = stride_size
+        self._mode = mode
 
-    def foward(self, input):
-        # input array of feature map -> output array of feature map
-        pass
+    def forward(self, inputs):
+        channel_size = inputs.shape[0]
+        new_width = int((inputs.shape[1] - self._filter_size) / self._stride_size) + 1
+        new_height = int((inputs.shape[2] - self._filter_size) / self._stride_size) + 1
+
+        pool_output = np.zeros([channel_size, new_width, new_height], dtype=np.double)
+
+        for f in range(0, channel_size):
+            for w in range(0, new_width):
+                for h in range(0, new_height):
+                    i = w*self._stride_size
+                    j = h*self._stride_size
+                    if (self._mode.lower() == 'average'):
+                        pool_output[f,w,h] = '%.3f' % np.average(inputs[f, i:(i+self._filter_size), j:(j+self._filter_size)])
+                    elif (self._mode.lower() == 'max'):
+                        pool_output[f,w,h] = np.max(inputs[f, i:(i+self._filter_size), j:(j+self._filter_size)])
+                    else:
+                        pass
+
+        return pool_output
 
 
 class FlattenLayer:
