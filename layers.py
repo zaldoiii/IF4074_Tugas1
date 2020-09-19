@@ -14,9 +14,8 @@ class ConvLayer:
         self._weights = np.random.randn(
             num_filter, num_channel, filter_size, filter_size)
         self._bias = np.zeros((num_filter))
-        print(self._weights)
 
-    def zero_padding(self, inputs):
+    def _zero_padding(self, inputs):
         w, h = inputs.shape[0], inputs.shape[1]
         new_w = 2 * self._padding + w
         new_h = 2 * self._padding + h
@@ -25,14 +24,14 @@ class ConvLayer:
                self._padding:h+self._padding] = inputs
         return output
 
-    def foward(self, inputs):
+    def forward(self, inputs):
         channel_size = inputs.shape[0]
         width = inputs.shape[1]+2*self._padding
         height = inputs.shape[2]+2*self._padding
 
         self._inputs = np.zeros((channel_size, width, height))
         for c in range(inputs.shape[0]):
-            self._inputs[c, :, :] = self.zero_padding(inputs[c, :, :])
+            self._inputs[c, :, :] = self._zero_padding(inputs[c, :, :])
 
         out_width = int((width - self._filter_size)/self._stride + 1)
         out_heigth = int((height - self._filter_size)/self._stride + 1)
@@ -54,7 +53,7 @@ class PoolLayer:
         self._stride_size = stride_size
         self._mode = mode
 
-    def foward(self, inputs):
+    def forward(self, inputs):
         channel_size = inputs.shape[0]
         new_width = int((inputs.shape[1] - self._filter_size) / self._stride_size) + 1
         new_height = int((inputs.shape[2] - self._filter_size) / self._stride_size) + 1
@@ -75,13 +74,21 @@ class PoolLayer:
 
         return pooled_map
 
+class DetectorLayer:
+    def __init__(self):
+        pass
+
+    def forward(self,inputs):
+        # Use ReLU
+        inputs[inputs < 0] = 0
+        return inputs
 
 class FlattenLayer:
     def init(self):
         pass
 
-    def foward(self, input):
-        flattened_map = np.flatten(input)
+    def forward(self, inputs):
+        flattened_map = np.flatten(inputs)
         return flattened_map
 
 
@@ -142,10 +149,10 @@ class DenseLayer:
         else:
             raise Exception("Undefined activation function")
 
-    def foward(self, input, weight=[]):
+    def forward(self, inputs, weight=[]):
         # Init weight with 0, length is equal to n_units + 1 because of bias
         if len(weight) == 0:
-            weight = np.zeros( (self.n_units, len(input) + 1) )
+            weight = np.zeros( (self.n_units, len(inputs) + 1) )
 
-        nett = self._nett(input, weight)
+        nett = self._nett(inputs, weight)
         return self._activation_function(nett)
