@@ -1,6 +1,7 @@
 import math
 import numpy as np
 
+from scipy.special import expit
 
 class ConvLayer:
     def __init__(self, filter_size, num_filter, input_size, num_channel, stride=1, padding=0):
@@ -88,17 +89,20 @@ class FlattenLayer:
         pass
 
     def forward(self, inputs):
-        flattened_map = np.flatten(inputs)
+        flattened_map = inputs.flatten()
         return flattened_map
 
 
 class DenseLayer:
 
-    bias = 1
+    BIAS = 1
 
-    def __init__(self, n_units, activation):
+    def __init__(self, n_inputs, n_units, activation):
         self.n_units = n_units
         self.activation = activation
+
+        # Init weight from interval 0..0.1
+        self.weight = np.random.uniform(low=0.0, high=0.1, size=(n_units, n_inputs + 1))
 
     def _sigmoid(self, nett):
         '''
@@ -116,11 +120,11 @@ class DenseLayer:
         Calculate softmax of first element 
         softmax(nett(1), nett) = e^(nett(1))/sum(e^nett(i)), i = 1, 2, 3,.., length of nett
         '''
-        expo = np.exp(np_vector)
-        expo_sum = np.sum(np.exp(np_vector))
+        expo = expit(np_vector)
+        expo_sum = np.sum(expit(np_vector))
         return expo/expo_sum
     
-    def _nett(self, input, weight):
+    def _nett(self, input):
         '''
         Sum of input multiplied by weight
         EX. 
@@ -132,10 +136,9 @@ class DenseLayer:
         nett_result = np.array([])
 
         for i in range(self.n_units):
-            nett_temp = np.multiply(weight[i], np.append(input, self.bias))
+            nett_temp = np.multiply(self.weight[i], np.append(input, self.BIAS))
             nett_result = np.append(nett_result, np.sum(nett_temp))
 
-        print("nett:\n",nett_result)
         return nett_result
 
     def _activation_function(self, nett):
@@ -149,10 +152,6 @@ class DenseLayer:
         else:
             raise Exception("Undefined activation function")
 
-    def forward(self, inputs, weight=[]):
-        # Init weight with 0, length is equal to n_units + 1 because of bias
-        if len(weight) == 0:
-            weight = np.zeros( (self.n_units, len(inputs) + 1) )
-
-        nett = self._nett(inputs, weight)
+    def forward(self, inputs):
+        nett = self._nett(inputs)
         return self._activation_function(nett)
