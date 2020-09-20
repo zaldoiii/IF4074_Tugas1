@@ -4,10 +4,9 @@ import numpy as np
 from scipy.special import expit
 
 class ConvLayer:
-    def __init__(self, filter_size, num_filter, input_size, num_channel, stride=1, padding=0):
+    def __init__(self, filter_size, num_filter,  num_channel, stride=1, padding=0):
         self._filter_size = filter_size
         self._num_filter = num_filter
-        self._input_size = input_size
         self._num_channel = num_channel
         self._stride = stride
         self._padding = padding
@@ -36,7 +35,6 @@ class ConvLayer:
 
         out_width = int((width - self._filter_size)/self._stride + 1)
         out_heigth = int((height - self._filter_size)/self._stride + 1)
-        print(out_heigth, out_width)
         feature_maps = np.zeros((self._num_filter, out_width, out_heigth))
 
         for f in range(self._num_filter):
