@@ -95,14 +95,13 @@ class FlattenLayer:
 
 class DenseLayer:
 
-    BIAS = 1
-
     def __init__(self, n_inputs, n_units, activation):
         self.n_units = n_units
         self.activation = activation
 
         # Init weight from interval 0..0.1
-        self.weight = np.random.uniform(low=0.0, high=0.1, size=(n_units, n_inputs + 1))
+        self.weight = np.random.uniform(low=0.0, high=0.1, size=(n_units, n_inputs))
+        self.bias = np.random.uniform(low=0.0, high=0.1, size=n_units)
 
     def _sigmoid(self, nett):
         '''
@@ -128,16 +127,16 @@ class DenseLayer:
         '''
         Sum of input multiplied by weight
         EX. 
-        var data_x = [3,2,5]
+        var input = [3,2,5]
         var weight = [0.3, 0.1, 0.5, 0.7] # 0.7 is for bias
-        nett(data_x, weight) = 3*0.3 + 2*0.1 + 5*0.5 + 0.7 = 4.3 
+        nett(input) = 3*0.3 + 2*0.1 + 5*0.5 + 0.7 = 4.3 
         '''
 
         nett_result = np.array([])
 
         for i in range(self.n_units):
-            nett_temp = np.multiply(self.weight[i], np.append(input, self.BIAS))
-            nett_result = np.append(nett_result, np.sum(nett_temp))
+            nett_temp = np.multiply(self.weight[i], input)
+            nett_result = np.append(nett_result, np.sum(nett_temp) + self.bias[i] )
 
         return nett_result
 
