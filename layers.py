@@ -46,6 +46,15 @@ class ConvLayer:
 
         return feature_maps
 
+    # Calculate error based on negative gradient descent
+    def calculate_error(self, output, previous_errors):
+        pass
+
+    # Update weights and bias
+    def update_weights(self, errors, output, learning_rate, momentum):
+        pass
+
+
 
 class PoolLayer:
     def __init__(self,filter_size,stride_size,mode):
@@ -73,6 +82,14 @@ class PoolLayer:
                         pass
 
         return pooled_map
+    
+    # Calculate error based on negative gradient descent
+    def calculate_error(self, output, previous_errors):
+        pass
+
+    # Update weights and bias
+    def update_weights(self, errors, output, learning_rate, momentum):
+        pass
 
 class DetectorLayer:
     def __init__(self):
@@ -93,6 +110,9 @@ class FlattenLayer:
 
     def calculate_error(self, output):
         return output
+    
+    def update_weight(self, errors, output, learning_rate, momentum):
+        pass
 
 
 class DenseLayer:

@@ -36,6 +36,7 @@ y = iris.target
 # print('\n\ncat.0.jpg prediction:\n', out)
 cnn = MyCNN (
     DenseLayer(n_units=10, activation='sigmoid'),
+    DenseLayer(n_units=3, activation='relu'),
     DenseLayer(n_units=1, activation='sigmoid'),
 )
 
