@@ -1,36 +1,57 @@
+import numpy as np
 from layers import ConvLayer, PoolLayer, DenseLayer, DetectorLayer, FlattenLayer
+from utils import Utils
 
 class MyCNN:
-  def __init__(self):
-    self._layer1 = ConvLayer(filter_size=3,num_filter=3,num_channel=3)
-    self._layer2 = DetectorLayer()
-    self._layer3 = PoolLayer(filter_size=3,stride_size=1,mode="Max")
+    def __init__(self, *layers):
+        self.layers = []
+        for layer in layers:
+            self.layers.append(layer)
 
-    self._layer4 = ConvLayer(filter_size=4,num_filter=1,num_channel=3)
-    self._layer5 = DetectorLayer()
-    self._layer6 = PoolLayer(filter_size=3,stride_size=2,mode="Max")
+    def forward(self,inputs):
+        out = inputs.copy()
+        result = [out]
+        for layer in self.layers:
+            out = layer.forward(out)
+            result.append(out)
 
-    self._layer7 = ConvLayer(filter_size=4,num_filter=1,num_channel=1)
-    self._layer8 = DetectorLayer()
-    self._layer9 = PoolLayer(filter_size=4,stride_size=2,mode="average")
+        return result
+    
+    def calculate_output_error(self, output, target):
+        derivative_values = np.array([])
+        for x in output:
+            derivative_values = np.append(derivative_values, Utils.get_derivative('sigmoid', x))
 
-    self._layer10 = FlattenLayer()
-    self._layer11 = DenseLayer(n_inputs=4900, n_units=120, activation='relu')
-    self._layer12 = DenseLayer(n_inputs=120, n_units=1, activation='sigmoid')
+        return np.multiply(derivative_values, np.subtract(target, output))
 
-  def forward(self,inputs):
-    out = inputs.copy()
-    out = self._layer1.forward(out)
-    out = self._layer2.forward(out)
-    out = self._layer3.forward(out)
-    out = self._layer4.forward(out)
-    out = self._layer5.forward(out)
-    out = self._layer6.forward(out)
-    out = self._layer7.forward(out)
-    out = self._layer8.forward(out)
-    out = self._layer9.forward(out)
-    out = self._layer10.forward(out) 
-    out = self._layer11.forward(out)
-    out = self._layer12.forward(out)
+    def fit(self, features, target, batch_size, epochs, learning_rate, momentum=1):
+        for i in range(epochs):
+            
+            print("\rEpoch:", i, end='', flush=True)
+            sum_target = 0
+            sum_output = 0
+            for j in range(batch_size):
+                curr_index = (batch_size * i + j) % len(features) 
 
-    return out
+                # Feed forward
+                result = self.forward(features[curr_index])
+                sum_target += target[curr_index]
+                sum_output += result[len(result)-1][0] # Assume only 1 class target
+
+            avg_target = np.array([sum_target / batch_size])
+            avg_output = np.array([sum_output / batch_size])
+
+            # Backward propagation
+            # Output layer
+            errors = []
+            errors.append(self.calculate_output_error(avg_output, avg_target))
+            curr_err_idx = 0
+            # Other layers
+            for i in reversed(range(len(self.layers))):
+                prev_err = np.array(errors[curr_err_idx])
+                errors.insert(0, self.layers[i].calculate_error(output=result[i], previous_errors=prev_err))
+                curr_err_idx += 1
+            
+            # Update weight
+            for i in reversed(range(len(self.layers))):
+                self.layers[i].update_weights(np.array(errors[i+1]), result[i], learning_rate, momentum)

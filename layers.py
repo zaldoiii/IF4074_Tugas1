@@ -2,6 +2,7 @@ import math
 import numpy as np
 
 from scipy.special import expit
+from utils import Utils
 
 class ConvLayer:
     def __init__(self, filter_size, num_filter,  num_channel, stride=1, padding=0):
@@ -90,16 +91,25 @@ class FlattenLayer:
         flattened_map = inputs.flatten()
         return flattened_map
 
+    def calculate_error(self, output):
+        return output
+
 
 class DenseLayer:
 
-    def __init__(self, n_inputs, n_units, activation):
+    def __init__(self, n_units, activation, n_inputs=None):
         self.n_units = n_units
         self.activation = activation
 
-        # Init weight from interval 0..0.1
-        self.weight = np.random.uniform(low=0.0, high=0.1, size=(n_units, n_inputs))
         self.bias = np.random.uniform(low=0.0, high=0.1, size=n_units)
+        if n_inputs:
+            self._init_weights(n_inputs)
+        else:
+            self.weight = []
+
+    def _init_weights(self, n_inputs):
+        # Init weight from interval 0..0.1
+        self.weight = np.random.uniform(low=0.0, high=0.1, size=(self.n_units, n_inputs))
 
     def _sigmoid(self, nett):
         '''
@@ -126,7 +136,8 @@ class DenseLayer:
         Sum of input multiplied by weight
         EX. 
         var input = [3,2,5]
-        var weight = [0.3, 0.1, 0.5, 0.7] # 0.7 is for bias
+        var weight = [0.3, 0.1, 0.5]
+        var bias = 0.7
         nett(input) = 3*0.3 + 2*0.1 + 5*0.5 + 0.7 = 4.3 
         '''
 
@@ -150,5 +161,32 @@ class DenseLayer:
             raise Exception("Undefined activation function")
 
     def forward(self, inputs):
+        if len(self.weight) == 0:
+           self._init_weights(len(inputs))
         nett = self._nett(inputs)
         return self._activation_function(nett)
+
+    # Calculate error based on negative gradient descent
+    def calculate_error(self, output, previous_errors):
+        derivative_values = np.array([])
+        for x in output:
+            derivative_values = np.append(derivative_values, Utils.get_derivative(self.activation, x))
+    
+        # weight matrix representation: row for output, column for input
+        # length of output should be equal to n_inputs
+        sum_result = np.array([])
+        for i in range(len(output)):
+            # iterate over weight column and multiply with errors
+            sum_temp = self.weight[:,i] * previous_errors
+            sum_result= np.append(sum_result, np.sum(sum_temp))
+
+        return np.multiply(derivative_values, sum_result)
+
+    # Update weights and bias
+    def update_weights(self, errors, output, learning_rate, momentum):
+        # Update weight formula = w + momentum * w + learning_rate * errors * output
+        # Update bias formula = bias + momentum * bias + learning_rate * errors
+        for i in range(self.n_units):
+            self.weight[i] = self.weight[i] + ((momentum * self.weight[i]) + (learning_rate * errors[i] * output))
+
+        self.bias = self.bias + ((momentum * self.bias) + (learning_rate * errors))
