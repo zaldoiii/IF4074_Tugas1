@@ -7,8 +7,16 @@ class MyCNN:
         self.layers = []
         for layer in layers:
             self.layers.append(layer)
+    
+    def forward(self, inputs):
+        out = inputs.copy()
+        for layer in self.layers:
+            out = layer.forward(out)
 
-    def forward(self,inputs):
+        return out
+
+    # Private function to forward propagate and store every output in array
+    def _forward(self,inputs):
         out = inputs.copy()
         result = [out]
         for layer in self.layers:
@@ -34,7 +42,7 @@ class MyCNN:
                 curr_index = (batch_size * i + j) % len(features) 
 
                 # Feed forward
-                result = self.forward(features[curr_index])
+                result = self._forward(features[curr_index])
                 sum_target += target[curr_index]
                 sum_output += result[len(result)-1][0] # Assume only 1 class target
 

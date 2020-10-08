@@ -108,10 +108,10 @@ class FlattenLayer:
         flattened_map = inputs.flatten()
         return flattened_map
 
-    def calculate_error(self, output):
+    def calculate_error(self, output, previous_errors):
         return output
     
-    def update_weight(self, errors, output, learning_rate, momentum):
+    def update_weights(self, errors, output, learning_rate, momentum):
         pass
 
 
@@ -138,7 +138,7 @@ class DenseLayer:
         var nett = 3.6
         sigmoid(nett) = 1/(1+e^-nett) = 1/(1+e^(-3.6)) = 0.9734
         '''
-        return 1/(1+math.e**(-nett))
+        return 1/(1 + np.exp(-nett))
 
     def _softmax(self, np_vector):
         '''
