@@ -26,6 +26,7 @@ class ConvLayer:
         return output
 
     def forward(self, inputs):
+        self.input = inputs
         channel_size = inputs.shape[0]
         width = inputs.shape[1]+2*self._padding
         height = inputs.shape[2]+2*self._padding
@@ -46,12 +47,7 @@ class ConvLayer:
 
         return feature_maps
 
-    # Calculate error based on negative gradient descent
-    def calculate_error(self, output, previous_errors):
-        pass
-
-    # Update weights and bias
-    def update_weights(self, errors, output, learning_rate, momentum):
+    def backward(self, prev_errors, learning_rate, momentum):
         pass
 
 
@@ -63,6 +59,7 @@ class PoolLayer:
         self._mode = mode
 
     def forward(self, inputs):
+        self.input = inputs
         channel_size = inputs.shape[0]
         new_width = int((inputs.shape[1] - self._filter_size) / self._stride_size) + 1
         new_height = int((inputs.shape[2] - self._filter_size) / self._stride_size) + 1
@@ -83,12 +80,7 @@ class PoolLayer:
 
         return pooled_map
     
-    # Calculate error based on negative gradient descent
-    def calculate_error(self, output, previous_errors):
-        pass
-
-    # Update weights and bias
-    def update_weights(self, errors, output, learning_rate, momentum):
+    def backward(self, prev_errors, learning_rate, momentum):
         pass
 
 class DetectorLayer:
@@ -97,23 +89,26 @@ class DetectorLayer:
 
     def forward(self,inputs):
         # Use ReLU
+        self.inputs = inputs
         inputs[inputs < 0] = 0
         return inputs
+    
+    def backward(self, prev_errors, learning_rate, momentum):
+        dx = prev_errors.copy()
+        dx[self.inputs < 0] = 0
+        return dx
 
 class FlattenLayer:
     def init(self):
         pass
 
     def forward(self, inputs):
+        self.C, self.W, self.H = inputs.shape
         flattened_map = inputs.flatten()
         return flattened_map
 
-    def calculate_error(self, output, previous_errors):
-        return output
-    
-    def update_weights(self, errors, output, learning_rate, momentum):
-        pass
-
+    def backward(self, prev_errors, learning_rate, momentum):
+        return prev_errors.reshape(self.C, self.W, self.H)
 
 class DenseLayer:
 
@@ -183,6 +178,8 @@ class DenseLayer:
     def forward(self, inputs):
         if len(self.weight) == 0:
            self._init_weights(len(inputs))
+        self.input = inputs
+
         nett = self._nett(inputs)
         return self._activation_function(nett)
 
@@ -209,4 +206,30 @@ class DenseLayer:
         for i in range(self.n_units):
             self.weight[i] = self.weight[i] + ((momentum * self.weight[i]) + (learning_rate * errors[i] * output))
 
+        print('errors.shape, bias.shape:', errors.shape, self.bias.shape)
         self.bias = self.bias + ((momentum * self.bias) + (learning_rate * errors))
+    
+    # Update weight in the current layers based on previous errors and calculate error for the current network
+    def backward(self, prev_errors, learning_rate, momentum):
+        # Update weight formula = w - (-momentum * w - learning_rate * errors * output)
+        # Update bias formula = bias - (-momentum * bias - learning_rate * errors)
+        for i in range(self.n_units):
+            self.weight[i] = self.weight[i] + ((momentum * self.weight[i]) + (learning_rate * prev_errors[i] * self.input))
+
+        self.bias = self.bias + ((momentum * self.bias) + (learning_rate * prev_errors))
+
+        derivative_values = np.array([])
+        for x in self.input:
+            derivative_values = np.append(derivative_values, Utils.get_derivative(self.activation, x))
+
+        # weight matrix representation: row for output, column for input
+        # length of output should be equal to n_inputs
+        sum_result = np.array([])
+        for i in range(len(self.input)):
+            # iterate over weight column and multiply with errors
+            sum_temp = self.weight[:,i] * prev_errors
+            sum_result= np.append(sum_result, np.sum(sum_temp))
+
+        dE =  np.multiply(derivative_values, sum_result)
+
+        return dE

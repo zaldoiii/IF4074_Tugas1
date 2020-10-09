@@ -33,7 +33,7 @@ class MyCNN:
         return np.multiply(derivative_values, np.subtract(target, output))
 
     def fit(self, features, target, batch_size, epochs, learning_rate, momentum=1):
-        for i in range(epochs):
+        for i in range(epochs+1):
             
             print("\rEpoch:", i, end='', flush=True)
             sum_target = 0
@@ -51,15 +51,6 @@ class MyCNN:
 
             # Backward propagation
             # Output layer
-            errors = []
-            errors.append(self.calculate_output_error(avg_output, avg_target))
-            curr_err_idx = 0
-            # Other layers
+            dE = self.calculate_output_error(avg_output, avg_target)
             for i in reversed(range(len(self.layers))):
-                prev_err = np.array(errors[curr_err_idx])
-                errors.insert(0, self.layers[i].calculate_error(output=result[i], previous_errors=prev_err))
-                curr_err_idx += 1
-            
-            # Update weight
-            for i in reversed(range(len(self.layers))):
-                self.layers[i].update_weights(np.array(errors[i+1]), result[i], learning_rate, momentum)
+                dE = self.layers[i].backward(dE, learning_rate, momentum)
