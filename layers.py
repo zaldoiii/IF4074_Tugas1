@@ -232,7 +232,7 @@ class DenseLayer:
         self.deltaW = np.random.uniform(low=0.0, high=0.1, size=self.n_units)
 
     # Update weights and bias
-    def update_weights(self, errors, learning_rate, momentum):
+    def update_weights(self, learning_rate, momentum):
         # Update weight formula = w + momentum * w + learning_rate * errors * output
         # Update bias formula = bias + momentum * bias + learning_rate * errors
         for i in range(self.n_units):
