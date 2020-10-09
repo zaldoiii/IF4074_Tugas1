@@ -50,8 +50,8 @@ class ConvLayer:
 
     # Reset for error
     def _reset_error(self):
-        self._dw = np.zeros((num_filter, num_channel, filter_size, filter_size))
-        self._db = np.zeros((num_filter))
+        self._dw = np.zeros((self._num_filter, self._num_channel, self._filter_size, self._filter_size))
+        self._db = np.zeros((self._num_filter))
 
     # Update weight when 1 batch is finished
     def update_weights(self,learning_rate, momentum):
@@ -161,10 +161,13 @@ class DenseLayer:
             self._init_weights(n_inputs)
         else:
             self.weight = []
+            self.n_inputs = n_inputs
 
     def _init_weights(self, n_inputs):
+        self.n_inputs = n_inputs
         # Init weight from interval 0..0.1
         self.weight = np.random.uniform(low=0.0, high=0.1, size=(self.n_units, n_inputs))
+        self.deltaW = np.random.uniform(low=0.0, high=0.1, size=self.n_units)
 
     def _sigmoid(self, nett):
         '''
@@ -224,31 +227,20 @@ class DenseLayer:
         self.output = self._activation_function(nett)
         return self.output
 
-    # Calculate error based on negative gradient descent
-    def calculate_error(self, output, previous_errors):
-        derivative_values = np.array([])
-        for x in output:
-            derivative_values = np.append(derivative_values, Utils.get_derivative(self.activation, x))
-    
-        # weight matrix representation: row for output, column for input
-        # length of output should be equal to n_inputs
-        sum_result = np.array([])
-        for i in range(len(output)):
-            # iterate over weight column and multiply with errors
-            sum_temp = self.weight[:,i] * previous_errors
-            sum_result= np.append(sum_result, np.sum(sum_temp))
-
-        return np.multiply(derivative_values, sum_result)
+    # Reset for error
+    def _reset_error(self):
+        self.deltaW = np.random.uniform(low=0.0, high=0.1, size=self.n_units)
 
     # Update weights and bias
-    def update_weights(self, errors, output, learning_rate, momentum):
+    def update_weights(self, errors, learning_rate, momentum):
         # Update weight formula = w + momentum * w + learning_rate * errors * output
         # Update bias formula = bias + momentum * bias + learning_rate * errors
         for i in range(self.n_units):
-            self.weight[i] = self.weight[i] + ((momentum * self.weight[i]) + (learning_rate * errors[i] * output))
+            self.weight[i] = self.weight[i] + ((momentum * self.weight[i]) + (learning_rate * self.deltaW[i] * self.input))
 
-        print('errors.shape, bias.shape:', errors.shape, self.bias.shape)
-        self.bias = self.bias + ((momentum * self.bias) + (learning_rate * errors))
+        self.bias = self.bias + ((momentum * self.bias) + (learning_rate * self.deltaW))
+
+        self._reset_error()
     
     # Update weight in the current layers based on previous errors and calculate error for the current network
     def backward(self, prev_errors, learning_rate, momentum):
@@ -256,15 +248,8 @@ class DenseLayer:
         for x in self.output:
             derivative_values = np.append(derivative_values, Utils.get_derivative(self.activation, x))
 
-        deltaW = np.multiply(derivative_values, prev_errors)
+        self.deltaW += np.multiply(derivative_values, prev_errors)
         # weight matrix representation: row for output, column for input
         dE = np.matmul(prev_errors, self.weight)
-
-        # Update weight formula = w - (-momentum * w - learning_rate * errors * output)
-        # Update bias formula = bias - (-momentum * bias - learning_rate * errors)
-        for i in range(self.n_units):
-            self.weight[i] = self.weight[i] + ((momentum * self.weight[i]) + (learning_rate * deltaW[i] * self.input))
-
-        self.bias = self.bias + ((momentum * self.bias) + (learning_rate * deltaW))
 
         return dE
