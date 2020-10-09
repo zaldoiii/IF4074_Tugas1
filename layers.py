@@ -181,7 +181,8 @@ class DenseLayer:
         self.input = inputs
 
         nett = self._nett(inputs)
-        return self._activation_function(nett)
+        self.output = self._activation_function(nett)
+        return self.output
 
     # Calculate error based on negative gradient descent
     def calculate_error(self, output, previous_errors):
@@ -211,25 +212,19 @@ class DenseLayer:
     
     # Update weight in the current layers based on previous errors and calculate error for the current network
     def backward(self, prev_errors, learning_rate, momentum):
+        derivative_values = np.array([])
+        for x in self.output:
+            derivative_values = np.append(derivative_values, Utils.get_derivative(self.activation, x))
+
+        deltaW = np.multiply(derivative_values, prev_errors)
+        # weight matrix representation: row for output, column for input
+        dE = np.matmul(prev_errors, self.weight)
+
         # Update weight formula = w - (-momentum * w - learning_rate * errors * output)
         # Update bias formula = bias - (-momentum * bias - learning_rate * errors)
         for i in range(self.n_units):
-            self.weight[i] = self.weight[i] + ((momentum * self.weight[i]) + (learning_rate * prev_errors[i] * self.input))
+            self.weight[i] = self.weight[i] + ((momentum * self.weight[i]) + (learning_rate * deltaW[i] * self.input))
 
-        self.bias = self.bias + ((momentum * self.bias) + (learning_rate * prev_errors))
-
-        derivative_values = np.array([])
-        for x in self.input:
-            derivative_values = np.append(derivative_values, Utils.get_derivative(self.activation, x))
-
-        # weight matrix representation: row for output, column for input
-        # length of output should be equal to n_inputs
-        sum_result = np.array([])
-        for i in range(len(self.input)):
-            # iterate over weight column and multiply with errors
-            sum_temp = self.weight[:,i] * prev_errors
-            sum_result= np.append(sum_result, np.sum(sum_temp))
-
-        dE =  np.multiply(derivative_values, sum_result)
+        self.bias = self.bias + ((momentum * self.bias) + (learning_rate * deltaW))
 
         return dE

@@ -149,7 +149,8 @@ cnn.fit(
 
 out = np.array([])
 for data in X_test:
-    out = np.append(out, cnn.forward(data))
+    out = np.append(out, np.rint(cnn.forward(data)))
 
+print("\n\nPredicted:", out)
 print("\n\nAccuracy:", metrics.accuracy_score(y_test, out))
 print("\n\nConfusion matrix:\n", metrics.confusion_matrix(y_test, out))

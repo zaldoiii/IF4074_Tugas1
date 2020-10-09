@@ -24,13 +24,6 @@ class MyCNN:
             result.append(out)
 
         return result
-    
-    def calculate_output_error(self, output, target):
-        derivative_values = np.array([])
-        for x in output:
-            derivative_values = np.append(derivative_values, Utils.get_derivative('sigmoid', x))
-
-        return np.multiply(derivative_values, np.subtract(target, output))
 
     def fit(self, features, target, batch_size, epochs, learning_rate, momentum=1):
         for i in range(epochs):
@@ -51,7 +44,7 @@ class MyCNN:
 
             # Backward propagation
             # Output layer
-            dE = self.calculate_output_error(avg_output, avg_target)
+            dE = avg_target - avg_output
             for i in reversed(range(len(self.layers))):
                 dE = self.layers[i].backward(dE, learning_rate, momentum)
             
