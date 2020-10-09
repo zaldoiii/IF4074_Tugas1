@@ -157,6 +157,12 @@ for train_index, test_index in kf.split(prepocessed_images):
     y_train, y_index = class_label[train_index], class_label[test_index]
 
     cnn = MyCNN (
+        ConvLayer(filter_size=3,num_filter=3,num_channel=3),
+        DetectorLayer(),
+        # PoolLayer(filter_size=3,stride_size=1,mode="Max"),
+        ConvLayer(filter_size=3,num_filter=3,num_channel=3),
+        DetectorLayer(),
+        # PoolLayer(filter_size=3,stride_size=2,mode="Max"),
         FlattenLayer(),
         DenseLayer(n_units=3, activation='relu'),
         DenseLayer(n_units=1, activation='sigmoid'),

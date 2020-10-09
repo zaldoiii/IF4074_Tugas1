@@ -37,26 +37,29 @@ class MyCNN:
 
         return result
 
+    def calculate_loss(self, target, output):
+        return 0.5 * (target-output)**2
+
     def fit(self, features, target, batch_size, epochs, learning_rate, momentum=1):
         for i in range(epochs):
             
-            print("\rEpoch:", i, end='', flush=True)
-            sum_target = 0
-            sum_output = 0
+            print("Epoch:", i+1, end=', ')
+            sum_loss = 0
             for j in range(batch_size):
                 curr_index = (batch_size * i + j) % len(features) 
 
                 # Feed forward
                 result = self._forward(features[curr_index])
-                dE = np.array([target[curr_index] - result[len(result)-1][0]])
+                curr_target = target[curr_index]
+                curr_output = result[len(result)-1][0]
+                dE = np.array([curr_target - curr_output])*-1
                 for i in reversed(range(len(self.layers))):
                     dE = self.layers[i].backward(dE)
+                sum_loss += self.calculate_loss(curr_target, curr_output)
 
             # Backward propagation
             # Output layer
             for i in reversed(range(len(self.layers))):
                 self.layers[i].update_weights(learning_rate, momentum)
-            
-            
-            
-        print("\rEpoch:", epochs, end='', flush=True) 
+            avg_loss = sum_loss/batch_size
+            print('Loss: ', avg_loss)

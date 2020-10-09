@@ -244,12 +244,12 @@ class DenseLayer:
 
     # Update weights and bias
     def update_weights(self, learning_rate, momentum):
-        # Update weight formula = w + momentum * w + learning_rate * errors * output
+        # Update weight formula = w  + momentum * w + learning_rate * errors * output
         # Update bias formula = bias + momentum * bias + learning_rate * errors
         for i in range(self.n_units):
-            self.weight[i] = self.weight[i] + ((momentum * self.weight[i]) + (learning_rate * self.deltaW[i] * self.input))
+            self.weight[i] = self.weight[i] - ((momentum * self.weight[i]) + (learning_rate * self.deltaW[i] * self.input))
 
-        self.bias = self.bias + ((momentum * self.bias) + (learning_rate * self.deltaW))
+        self.bias = self.bias - ((momentum * self.bias) + (learning_rate * self.deltaW))
 
         self._reset_error()
     
