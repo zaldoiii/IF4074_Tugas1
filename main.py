@@ -154,7 +154,7 @@ best_accuracy = 0
 best_model = None
 for train_index, test_index in kf.split(prepocessed_images):
     X_train, X_test = prepocessed_images[train_index], prepocessed_images[test_index]
-    y_train, y_index = class_label[train_index], class_label[test_index]
+    y_train, y_test = class_label[train_index], class_label[test_index]
 
     cnn = MyCNN (
         ConvLayer(filter_size=3,num_filter=3,num_channel=3),
