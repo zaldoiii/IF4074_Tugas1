@@ -49,16 +49,19 @@ class ConvLayer:
 
         return feature_maps
 
+    # Reset for error
     def _reset_error(self):
         self._dw = np.zeros((num_filter, num_channel, filter_size, filter_size))
         self._db = np.zeros((num_filter))
 
+    # Update weight when 1 batch is finished
     def update_weights(self,learning_rate, momentum):
         self.weights -= learning_rate * self._dw
         self.bias -= learning_rate * self._db
 
         self._reset_error()
 
+    # Backprop calculation
     def backward(self, prev_errors, learning_rate, momentum):
         C, W, H = self.inputs.shape
         dx = np.zeros(self.inputs.shape)
