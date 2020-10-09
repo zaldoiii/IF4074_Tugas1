@@ -33,7 +33,7 @@ class MyCNN:
         return np.multiply(derivative_values, np.subtract(target, output))
 
     def fit(self, features, target, batch_size, epochs, learning_rate, momentum=1):
-        for i in range(epochs+1):
+        for i in range(epochs):
             
             print("\rEpoch:", i, end='', flush=True)
             sum_target = 0
@@ -54,3 +54,5 @@ class MyCNN:
             dE = self.calculate_output_error(avg_output, avg_target)
             for i in reversed(range(len(self.layers))):
                 dE = self.layers[i].backward(dE, learning_rate, momentum)
+            
+        print("\rEpoch:", epochs, end='', flush=True) 
