@@ -165,7 +165,7 @@ class DenseLayer:
         self.n_units = n_units
         self.activation = activation
 
-        self.bias = np.random.uniform(low=0.0, high=0.1, size=n_units)
+        self.bias = np.random.randn(n_units) * 0.5
         if n_inputs:
             self._init_weights(n_inputs)
         else:
@@ -175,8 +175,8 @@ class DenseLayer:
     def _init_weights(self, n_inputs):
         self.n_inputs = n_inputs
         # Init weight from interval 0..0.1
-        self.weight = np.random.uniform(low=0.0, high=0.1, size=(self.n_units, n_inputs))
-        self.deltaW = np.random.uniform(low=0.0, high=0.1, size=self.n_units)
+        self.weight = np.random.randn(self.n_units, n_inputs) * 0.5
+        self.deltaW = np.zeros((self.n_units))
 
     def _sigmoid(self, nett):
         '''
@@ -238,7 +238,8 @@ class DenseLayer:
 
     # Reset for error
     def _reset_error(self):
-        self.deltaW = np.random.uniform(low=0.0, high=0.1, size=self.n_units)
+        self.deltaW = np.zeros((self.n_units))
+
 
     # Update weights and bias
     def update_weights(self, learning_rate, momentum):
