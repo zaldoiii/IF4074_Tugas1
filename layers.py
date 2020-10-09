@@ -15,6 +15,8 @@ class ConvLayer:
         self._weights = np.random.randn(
             num_filter, num_channel, filter_size, filter_size)
         self._bias = np.zeros((num_filter))
+        self._dw = np.zeros((num_filter, num_channel, filter_size, filter_size))
+        self._db = np.zeros((num_filter))
 
     def _zero_padding(self, inputs):
         w, h = inputs.shape[0], inputs.shape[1]
@@ -47,8 +49,35 @@ class ConvLayer:
 
         return feature_maps
 
+    def _reset_error(self):
+        self._dw = np.zeros((num_filter, num_channel, filter_size, filter_size))
+        self._db = np.zeros((num_filter))
+
+    def update_weights(self,learning_rate, momentum):
+        self.weights -= learning_rate * self._dw
+        self.bias -= learning_rate * self._db
+
+        self._reset_error()
+
     def backward(self, prev_errors, learning_rate, momentum):
-        pass
+        C, W, H = self.inputs.shape
+        dx = np.zeros(self.inputs.shape)
+        dw = np.zeros(self.weights.shape)
+        db = np.zeros(self.bias.shape)
+
+        F, W, H = dy.shape
+        for f in range(F):
+            for w in range(W):
+                for h in range(H):
+                    dw[f,:,:,:]+=dy[f,w,h]*self.inputs[:,w:w+self.K,h:h+self.K]
+                    dx[:,w:w+self.K,h:h+self.K]+=dy[f,w,h]*self.weights[f,:,:,:]
+
+        for f in range(F):
+            db[f] = np.sum(dy[f, :, :])
+
+        self._dw += dw
+        self._db += db
+        return dx
 
 
 
