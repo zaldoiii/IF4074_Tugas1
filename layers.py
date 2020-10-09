@@ -55,13 +55,13 @@ class ConvLayer:
 
     # Update weight when 1 batch is finished
     def update_weights(self,learning_rate, momentum):
-        self.weights -= learning_rate * self._dw
-        self.bias -= learning_rate * self._db
+        self._weights -= learning_rate * self._dw
+        self._bias -= learning_rate * self._db
 
         self._reset_error()
 
     # Backprop calculation
-    def backward(self, prev_errors, learning_rate, momentum):
+    def backward(self, prev_errors):
         C, W, H = self._inputs.shape
         dx = np.zeros(self._inputs.shape)
         dw = np.zeros(self._weights.shape)
@@ -111,17 +111,22 @@ class PoolLayer:
 
         return pooled_map
     
-    def backward(self, prev_errors, learning_rate, momentum):
+    def backward(self, prev_errors):
         F, W, H = self.input.shape
         dx = np.zeros(self.input.shape)
 
+        print('prev_errors', prev_errors.shape)
+        print('dx:',dx.shape)
         for f in range(0, F):
             for w in range(0, W, self._filter_size):
                 for h in range(0, H, self._filter_size):
                     st = np.argmax(self.input[f, w:w+self._filter_size, h:h+self._filter_size])
                     (idx, idy) = np.unravel_index(st, (self._filter_size, self._filter_size))
-                    dx[f, w+idx, h+idy] = prev_errors[f, w/self._filter_size, h/self._filter_size]
+                    dx[f, w+idx, h+idy] = prev_errors[f, w//self._filter_size, h//self._filter_size]
         return dx
+    
+    def update_weights(self, learning_rate, momentum):
+        pass
 
 class DetectorLayer:
     def __init__(self):
@@ -133,10 +138,13 @@ class DetectorLayer:
         inputs[inputs < 0] = 0
         return inputs
     
-    def backward(self, prev_errors, learning_rate, momentum):
+    def backward(self, prev_errors):
         dx = prev_errors.copy()
         dx[self.inputs < 0] = 0
         return dx
+    
+    def update_weights(self, learning_rate, momentum):
+        pass
 
 class FlattenLayer:
     def init(self):
@@ -147,8 +155,11 @@ class FlattenLayer:
         flattened_map = inputs.flatten()
         return flattened_map
 
-    def backward(self, prev_errors, learning_rate, momentum):
+    def backward(self, prev_errors):
         return prev_errors.reshape(self.C, self.W, self.H)
+
+    def update_weights(self, learning_rate, momentum):
+        pass
 
 class DenseLayer:
 
@@ -243,7 +254,7 @@ class DenseLayer:
         self._reset_error()
     
     # Update weight in the current layers based on previous errors and calculate error for the current network
-    def backward(self, prev_errors, learning_rate, momentum):
+    def backward(self, prev_errors):
         derivative_values = np.array([])
         for x in self.output:
             derivative_values = np.append(derivative_values, Utils.get_derivative(self.activation, x))

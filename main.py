@@ -112,38 +112,16 @@ print("prepocessed_images.shape after transpose:", prepocessed_images.shape)
 # Train-test split 90%-10%
 X_train, X_test, y_train, y_test = train_test_split(prepocessed_images, class_label, test_size=0.1)
 
-# Cat prediction 2
-image = Image.open('dataset/cats/cat.0.jpg')
-image = image.resize((300,300)) 
-data = np.asarray(image)
-
-# data = np.transpose(data,(2,0,1))
-
-# cnn = MyCNN (
-#     ConvLayer(filter_size=3,num_filter=3,num_channel=3),
-#     DetectorLayer(),
-#     PoolLayer(filter_size=3,stride_size=1,mode="Max"),
-
-#     ConvLayer(filter_size=4,num_filter=1,num_channel=3),
-#     DetectorLayer(),
-#     PoolLayer(filter_size=3,stride_size=2,mode="Max"),
-
-#     ConvLayer(filter_size=4,num_filter=1,num_channel=1),
-#     DetectorLayer(),
-#     PoolLayer(filter_size=4,stride_size=2,mode="average"),
-
-#     FlattenLayer(),
-#     DenseLayer(n_inputs=4900, n_units=120, activation='relu'),
-#     DenseLayer(n_inputs=120, n_units=1, activation='sigmoid'),
-# )
-
 cnn = MyCNN (
     ConvLayer(filter_size=3,num_filter=3,num_channel=3),
     DetectorLayer(),
+    # PoolLayer(filter_size=3,stride_size=1,mode="Max"),
     ConvLayer(filter_size=3,num_filter=3,num_channel=3),
     DetectorLayer(),
+    # PoolLayer(filter_size=3,stride_size=2,mode="Max"),
     FlattenLayer(),
-    DenseLayer(n_units=3, activation='relu'),
+    DenseLayer(n_units=100, activation='relu'),
+    DenseLayer(n_units=10, activation='relu'),
     DenseLayer(n_units=1, activation='sigmoid'),
 )
 
@@ -151,7 +129,7 @@ cnn.fit(
     features=X_train,
     target=y_train,
     batch_size=5,
-    epochs=10,
+    epochs=5,
     learning_rate=0.1
 )
 

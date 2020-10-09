@@ -48,16 +48,15 @@ class MyCNN:
 
                 # Feed forward
                 result = self._forward(features[curr_index])
-                sum_target += target[curr_index]
-                sum_output += result[len(result)-1][0] # Assume only 1 class target
-
-            avg_target = np.array([sum_target / batch_size])
-            avg_output = np.array([sum_output / batch_size])
+                dE = np.array([target[curr_index] - result[len(result)-1][0]])
+                for i in reversed(range(len(self.layers))):
+                    dE = self.layers[i].backward(dE)
 
             # Backward propagation
             # Output layer
-            dE = avg_target - avg_output
             for i in reversed(range(len(self.layers))):
-                dE = self.layers[i].backward(dE, learning_rate, momentum)
+                self.layers[i].update_weights(learning_rate, momentum)
+            
+            
             
         print("\rEpoch:", epochs, end='', flush=True) 
