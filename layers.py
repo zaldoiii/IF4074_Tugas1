@@ -28,7 +28,6 @@ class ConvLayer:
         return output
 
     def forward(self, inputs):
-        self.input = inputs
         channel_size = inputs.shape[0]
         width = inputs.shape[1]+2*self._padding
         height = inputs.shape[2]+2*self._padding
@@ -63,20 +62,20 @@ class ConvLayer:
 
     # Backprop calculation
     def backward(self, prev_errors, learning_rate, momentum):
-        C, W, H = self.inputs.shape
-        dx = np.zeros(self.inputs.shape)
-        dw = np.zeros(self.weights.shape)
-        db = np.zeros(self.bias.shape)
+        C, W, H = self._inputs.shape
+        dx = np.zeros(self._inputs.shape)
+        dw = np.zeros(self._weights.shape)
+        db = np.zeros(self._bias.shape)
 
-        F, W, H = dy.shape
+        F, W, H = prev_errors.shape
         for f in range(F):
             for w in range(W):
                 for h in range(H):
-                    dw[f,:,:,:]+=dy[f,w,h]*self.inputs[:,w:w+self.K,h:h+self.K]
-                    dx[:,w:w+self.K,h:h+self.K]+=dy[f,w,h]*self.weights[f,:,:,:]
+                    dw[f,:,:,:]+=prev_errors[f,w,h]*self._inputs[:,w:w+self._filter_size,h:h+self._filter_size]
+                    dx[:,w:w+self._filter_size,h:h+self._filter_size]+=prev_errors[f,w,h]*self._weights[f,:,:,:]
 
         for f in range(F):
-            db[f] = np.sum(dy[f, :, :])
+            db[f] = np.sum(prev_errors[f, :, :])
 
         self._dw += dw
         self._db += db

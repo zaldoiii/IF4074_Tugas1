@@ -106,14 +106,17 @@ print("\nclass_dictionary:\n", class_dictionary)
 # Prepocess images
 prepocessed_images = apply_zeropadding(file_path)
 print("prepocessed_images.shape:", prepocessed_images.shape)
+prepocessed_images = np.transpose(prepocessed_images, (0,3,1,2))
+print("prepocessed_images.shape after transpose:", prepocessed_images.shape)
 
 # Train-test split 90%-10%
 X_train, X_test, y_train, y_test = train_test_split(prepocessed_images, class_label, test_size=0.1)
 
 # Cat prediction 2
-# image = Image.open('cats/cat.0.jpg')
-# image = image.resize((300,300)) 
-# data = np.asarray(image)
+image = Image.open('dataset/cats/cat.0.jpg')
+image = image.resize((300,300)) 
+data = np.asarray(image)
+
 # data = np.transpose(data,(2,0,1))
 
 # cnn = MyCNN (
@@ -135,6 +138,10 @@ X_train, X_test, y_train, y_test = train_test_split(prepocessed_images, class_la
 # )
 
 cnn = MyCNN (
+    ConvLayer(filter_size=3,num_filter=3,num_channel=3),
+    DetectorLayer(),
+    ConvLayer(filter_size=3,num_filter=3,num_channel=3),
+    DetectorLayer(),
     FlattenLayer(),
     DenseLayer(n_units=3, activation='relu'),
     DenseLayer(n_units=1, activation='sigmoid'),
