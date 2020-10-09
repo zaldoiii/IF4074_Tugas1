@@ -113,7 +113,16 @@ class PoolLayer:
         return pooled_map
     
     def backward(self, prev_errors, learning_rate, momentum):
-        pass
+        F, W, H = self.input.shape
+        dx = np.zeros(self.input.shape)
+
+        for f in range(0, F):
+            for w in range(0, W, self._filter_size):
+                for h in range(0, H, self._filter_size):
+                    st = np.argmax(self.input[f, w:w+self._filter_size, h:h+self._filter_size])
+                    (idx, idy) = np.unravel_index(st, (self._filter_size, self._filter_size))
+                    dx[f, w+idx, h+idy] = prev_errors[f, w/self._filter_size, h/self._filter_size]
+        return dx
 
 class DetectorLayer:
     def __init__(self):
