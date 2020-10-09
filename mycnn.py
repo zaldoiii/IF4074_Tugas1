@@ -2,6 +2,7 @@ import numpy as np
 import pickle 
 
 from layers import ConvLayer, PoolLayer, DenseLayer, DetectorLayer, FlattenLayer
+from sklearn import metrics
 from utils import Utils
 
 class MyCNN:
@@ -41,6 +42,8 @@ class MyCNN:
         return 0.5 * (target-output)**2
 
     def fit(self, features, target, batch_size, epochs, learning_rate, momentum=1):
+        out = np.array([])
+        y_target = np.array([])
         for i in range(epochs):
             
             print("Epoch:", i+1, end=', ')
@@ -56,10 +59,14 @@ class MyCNN:
                 for i in reversed(range(len(self.layers))):
                     dE = self.layers[i].backward(dE)
                 sum_loss += self.calculate_loss(curr_target, curr_output)
+                out = np.rint(np.append(out, curr_output))
+                y_target = np.append(y_target, curr_target)
 
             # Backward propagation
             # Output layer
             for i in reversed(range(len(self.layers))):
                 self.layers[i].update_weights(learning_rate, momentum)
             avg_loss = sum_loss/batch_size
-            print('Loss: ', avg_loss)
+            print('Loss: ', avg_loss, end=', ')
+            print('Accuracy: ', metrics.accuracy_score(y_target, out))
+            

@@ -129,8 +129,9 @@ cnn.fit(
     features=X_train,
     target=y_train,
     batch_size=5,
-    epochs=5,
-    learning_rate=0.1
+    epochs=10,
+    learning_rate=0.1,
+    momentum=0.5
 )
 
 model_name = 'pretrained_model'
@@ -173,7 +174,8 @@ for train_index, test_index in kf.split(prepocessed_images):
         target = y_train,
         batch_size = 5,
         epochs = 10,
-        learning_rate = 0.1
+        learning_rate = 0.1,
+        momentum = 0.5
     )
 
     out = np.array([])
