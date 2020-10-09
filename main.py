@@ -137,8 +137,14 @@ for train_index, test_index in kf.split(prepocessed_images):
         features = X_train,
         target = y_train,
         batch_size = 5,
+<<<<<<< HEAD
         epochs = 5,
         learning_rate = 0.4
+=======
+        epochs = 10,
+        learning_rate = 0.1,
+        momentum = 0.5
+>>>>>>> 6367936dff279e30bd1d2c930aba79fb00a98e0b
     )
 
     out = np.array([])
