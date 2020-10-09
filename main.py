@@ -112,6 +112,41 @@ print("prepocessed_images.shape after transpose:", prepocessed_images.shape)
 # Train-test split 90%-10%
 X_train, X_test, y_train, y_test = train_test_split(prepocessed_images, class_label, test_size=0.1)
 
+cnn = MyCNN (
+    ConvLayer(filter_size=3,num_filter=3,num_channel=3),
+    DetectorLayer(),
+    PoolLayer(filter_size=3,stride_size=4,mode="Max"),
+    ConvLayer(filter_size=3,num_filter=3,num_channel=3),
+    DetectorLayer(),
+    PoolLayer(filter_size=3,stride_size=1,mode="Max"),
+    FlattenLayer(),
+    DenseLayer(n_units=100, activation='relu'),
+    DenseLayer(n_units=10, activation='relu'),
+    DenseLayer(n_units=1, activation='sigmoid'),
+)
+
+cnn.fit(
+    features=X_train,
+    target=y_train,
+    batch_size=5,
+    epochs=5,
+    learning_rate=0.1
+)
+
+model_name = 'pretrained_model'
+cnn.save_model(model_name)
+
+cnn2 = MyCNN()
+cnn2.load_model(model_name)
+
+out = np.array([])
+for data in X_test:
+    out = np.append(out, np.rint(cnn2.forward(data)))
+
+print("\n\nPredicted:", out)
+print("\n\nAccuracy:", metrics.accuracy_score(y_test, out))
+print("\n\nConfusion matrix:\n", metrics.confusion_matrix(y_test, out))
+
 
 ## K-Fold cross validation
 kf = KFold(n_splits=10,shuffle=True)
@@ -137,14 +172,8 @@ for train_index, test_index in kf.split(prepocessed_images):
         features = X_train,
         target = y_train,
         batch_size = 5,
-<<<<<<< HEAD
         epochs = 5,
         learning_rate = 0.4
-=======
-        epochs = 10,
-        learning_rate = 0.1,
-        momentum = 0.5
->>>>>>> 6367936dff279e30bd1d2c930aba79fb00a98e0b
     )
 
     out = np.array([])
