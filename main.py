@@ -1,8 +1,9 @@
 from layers import ConvLayer, PoolLayer, DenseLayer, DetectorLayer, FlattenLayer
 from mycnn import MyCNN
 from PIL import Image
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, KFold
 from sklearn import metrics
+from copy import deepcopy
 import numpy as np
 import cv2
 import os
@@ -147,10 +148,52 @@ cnn.fit(
     learning_rate=0.1
 )
 
+model_name = 'pretrained_model'
+cnn.save_model(model_name)
+
+cnn2 = MyCNN()
+cnn2.load_model(model_name)
+
 out = np.array([])
 for data in X_test:
-    out = np.append(out, np.rint(cnn.forward(data)))
+    out = np.append(out, np.rint(cnn2.forward(data)))
 
 print("\n\nPredicted:", out)
 print("\n\nAccuracy:", metrics.accuracy_score(y_test, out))
 print("\n\nConfusion matrix:\n", metrics.confusion_matrix(y_test, out))
+
+
+## K-Fold cross validation
+kf = KFold(n_splits=10)
+best_accuracy = 0
+best_model = None
+for train_index, test_index in kf.split(prepocessed_images):
+    X_train, X_test = prepocessed_images[train_index], prepocessed_images[test_index]
+    y_train, y_index = class_label[train_index], class_label[test_index]
+
+    cnn = MyCNN (
+        FlattenLayer(),
+        DenseLayer(n_units=3, activation='relu'),
+        DenseLayer(n_units=1, activation='sigmoid'),
+    )
+
+    cnn.fit(
+        features = X_train,
+        target = y_train,
+        batch_size = 5,
+        epochs = 10,
+        learning_rate = 0.1
+    )
+
+    out = np.array([])
+    for data in X_test:
+        out = np.append(out, np.rint(cnn.forward(data)))
+
+    accuracy = metrics.accuracy_score(y_test, out)
+    print("\nAccuracy:", accuracy)
+    print("Confusion matrix:\n", metrics.confusion_matrix(y_test, out))
+    if accuracy > best_accuracy:
+        best_model = deepcopy(cnn)
+        best_accuracy = accuracy
+
+print('Best accuracy: ', best_accuracy)

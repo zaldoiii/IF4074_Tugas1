@@ -1,4 +1,6 @@
 import numpy as np
+import pickle 
+
 from layers import ConvLayer, PoolLayer, DenseLayer, DetectorLayer, FlattenLayer
 from utils import Utils
 
@@ -7,7 +9,17 @@ class MyCNN:
         self.layers = []
         for layer in layers:
             self.layers.append(layer)
-    
+
+    def save_model(self, name):
+        with open(name, 'wb') as handle:
+            pickle.dump(self.layers, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+    def load_model(self, name):
+        with open(name, 'rb') as handle:
+            b = pickle.load(handle)
+        self.layers = []
+        self.layers = b.copy()
+
     def forward(self, inputs):
         out = inputs.copy()
         for layer in self.layers:
